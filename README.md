@@ -23,14 +23,14 @@ Content-Type: application/json; ext=nn; charset=utf-8
 int main() {
     // http response parsing
     httptny::response_view http_response(http_test_data, { "Content-Type" });
-    if (http_response.hasHeader("Content-Type")) {
-        std::cout << http_response["Content-Type"] << std::endl;
+    if (http_response.getHeaders().exist("Content-Type")) {
+        std::cout << http_response.getHeaders()["Content-Type"] << std::endl;
     }
-    if (http_response.hasHeader("Server")) {
-        std::cout << http_response["Server"] << std::endl;
+    if (http_response.getHeaders().exist("Server")) {
+        std::cout << http_response.getHeaders()["Server"] << std::endl;
     }
     std::cout << http_response.getReturnCode() << std::endl;
-    std::cout << http_response.getData() << std::endl;
+    std::cout << http_response.getBody() << std::endl;
     
     // http request generator
     httptny::request http_request("PATCH", "/ntfn/sub",
