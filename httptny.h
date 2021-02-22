@@ -48,11 +48,27 @@ struct header_entry {
     string_view_t value;
 };
 
+class header_container : public std::vector<header_entry> {
+ public:
+    bool exist(const string_view_t& key) const {
+        auto it = std::find_if(begin(), end(),
+                              [key](const header_entry& header) { return header.key == key; });
+        return it != end();
+    }
+
+    const string_view_t& operator[](const string_view_t& key) const {
+        auto it = std::find_if(begin(), end(),
+                              [key](const header_entry& header) { return header.key == key; });
+        assert(it != end());
+        return it->value;
+    }
+};
+
 class response_view {
  private:
-    std::vector<header_entry> m_headers;
+    header_container m_headers;
     int32_t m_returnCode;
-    string_view_t m_data;
+    string_view_t m_body;
 
  public:
     response_view(const string_view_t& httpMessage,
@@ -84,7 +100,7 @@ class response_view {
                         m_headers.emplace_back(header_entry {key, value});
                     }
                 } else if(line.size() == 0) {
-                    m_data = string_view_t(remain.data() + endlinePos + 1);
+                    m_body = string_view_t(remain.data() + endlinePos + 1);
                     return;
                 }
             }
@@ -95,31 +111,22 @@ class response_view {
         }
     }
 
-    bool hasHeader(const string_view_t& key) const {
-        auto it = std::find_if(m_headers.begin(), m_headers.end(),
-                              [key](const header_entry& header) { return header.key == key; });
-        return it != m_headers.end();
+    const header_container& getHeaders() const {
+        return m_headers;
     }
 
-    const string_view_t& operator[](const string_view_t& key) const {
-        auto it = std::find_if(m_headers.begin(), m_headers.end(),
-                              [key](const header_entry& header) { return header.key == key; });
-        assert(it != m_headers.end());
-        return it->value;
+    const string_view_t& getBody() const {
+        return m_body;
     }
 
-    const string_view_t& getData() const {
-        return m_data;
-    }
-
-    const int32_t getReturnCode() const {
+    int32_t getReturnCode() const {
         return m_returnCode;
     }
 };
 
 class request {
  private:
-    std::vector<header_entry> m_headers;
+    header_container m_headers;
     string_view_t m_type;
     string_view_t m_url;
     string_view_t m_data;
