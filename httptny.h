@@ -64,7 +64,8 @@ class response_view {
         while (true) {
             std::size_t endlinePos = remain.find(lineEndingChar);
             string_view_t line(remain.data(),
-                               (endlinePos != std::string::npos ? endlinePos : remain.size()));
+                               ((endlinePos != std::string::npos) ?
+                                (endlinePos - (sizeof(lineEnding) - 2)) : remain.size()));
             if (firstLine) {
                 std::size_t httpEndPos = line.find(' ');
                 if (httpEndPos != std::string::npos) {
