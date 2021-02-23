@@ -23,19 +23,11 @@ Content-Type: application/json; ext=nn; charset=utf-8
 int main() {
     // http response parsing
     httptny::response_view http_response(http_test_data, { "Content-Type" });
-<<<<<<< HEAD
     if (http_response.getHeaders().contains("Content-Type")) {
         std::cout << http_response.getHeaders().at("Content-Type") << std::endl;
     }
     if (http_response.getHeaders().contains("Server")) {
         std::cout << http_response.getHeaders().at("Server") << std::endl;
-=======
-    if (http_response.getHeaders().exist("Content-Type")) {
-        std::cout << http_response.getHeaders()["Content-Type"] << std::endl;
-    }
-    if (http_response.getHeaders().exist("Server")) {
-        std::cout << http_response.getHeaders()["Server"] << std::endl;
->>>>>>> 564bc6137185af68b8ef746e00bc1ca8efcdcddd
     }
     std::cout << http_response.getReturnCode() << std::endl;
     std::cout << http_response.getBody() << std::endl;
