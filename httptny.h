@@ -15,7 +15,7 @@
 
 #include <cstring>
 #include <cassert>
-#include <vector>
+#include <unordered_map>
 #include <algorithm>
 #ifdef __cpp_lib_string_view
 #include <string_view>
@@ -43,24 +43,10 @@ constexpr const char lineEnding[] = "\r\n";
 
 constexpr const char lineEndingChar = lineEnding[sizeof(lineEnding) - 2];
 
-struct header_entry {
-    string_view_t key;
-    string_view_t value;
-};
-
-class header_container : public std::vector<header_entry> {
+class header_container : public std::unordered_map<string_view_t, string_view_t> {
  public:
-    bool exist(const string_view_t& key) const {
-        auto it = std::find_if(begin(), end(),
-                              [key](const header_entry& header) { return header.key == key; });
-        return it != end();
-    }
-
-    const string_view_t& operator[](const string_view_t& key) const {
-        auto it = std::find_if(begin(), end(),
-                              [key](const header_entry& header) { return header.key == key; });
-        assert(it != end());
-        return it->value;
+    bool contains(const string_view_t& key) const {
+        return find(key) != end();
     }
 };
 
@@ -97,7 +83,7 @@ class response_view {
                     if (reqHeader) {
                         string_view_t value(line.data() + keyEndPos + 2,
                                             line.size() - keyEndPos - 2);
-                        m_headers.emplace_back(header_entry {key, value});
+                        m_headers.emplace(std::move(key), std::move(value));
                     }
                 } else if(line.size() == 0) {
                     m_body = string_view_t(remain.data() + endlinePos + 1);
@@ -124,6 +110,8 @@ class response_view {
     }
 };
 
+using header_entry = std::pair<string_view_t, string_view_t>;
+
 class request {
  private:
     header_container m_headers;
@@ -136,7 +124,7 @@ class request {
             std::initializer_list<header_entry> headers = {})
         : m_type(type), m_url(url), m_data(data) {
         for (auto header : headers) {
-            m_headers.emplace_back(std::move(header));
+            m_headers.emplace(std::move(header));
         }
     }
 
@@ -149,9 +137,9 @@ class request {
         output += httpVersionDeclaration;
         output += lineEnding;
         for (auto header : m_headers) {
-            output += header.key;
+            output += header.first;
             output += ": ";
-            output += header.value;
+            output += header.second;
             output += lineEnding;
         }
         std::size_t contentLength = m_data.size() + std::strlen(lineEnding);
