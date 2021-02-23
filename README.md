@@ -22,20 +22,21 @@ Content-Type: application/json; ext=nn; charset=utf-8
 
 int main() {
     // http response parsing
-    httptny::response_view http_response(http_test_data, { "Content-Type" });
-    if (http_response.getHeaders().contains("Content-Type")) {
-        std::cout << http_response.getHeaders().at("Content-Type") << std::endl;
+    httptny::response_view http_response { http_test_data };
+    auto contentValue = http_response.getHeaderValue("Content-Type");
+    if (!contentValue.empty()) {
+        std::cout << contentValue << std::endl;
     }
-    if (http_response.getHeaders().contains("Server")) {
-        std::cout << http_response.getHeaders().at("Server") << std::endl;
+    auto serverValue = http_response.getHeaderValue("Server");
+    if (!serverValue.empty()) {
+        std::cout << serverValue << std::endl;
     }
     std::cout << http_response.getReturnCode() << std::endl;
     std::cout << http_response.getBody() << std::endl;
-    
-    // http request generator
-    httptny::request http_request("PATCH", "/ntfn/sub",
-                                  R"([{"op": "replace", "path": "/ena", "value": true}])");
-    std::cout << http_request.get() << std::endl;
+    auto headers = http_response.getHeaders<std::map>();
+    for (auto header : headers) {
+        std::cout << "> " << header.first << ": " << header.second << std::endl;
+    }
     return 0;
 }
 ```
